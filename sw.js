@@ -1,4 +1,4 @@
-const CACHE = 'vinzzz-v1';
+const CACHE = 'vinzzz-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './logo.jpg',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 

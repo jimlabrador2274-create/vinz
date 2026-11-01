@@ -231,7 +231,7 @@ const au=$('au');
 /* ---------- penyimpanan (IndexedDB) ---------- */
 function openDB(){return new Promise(res=>{try{const r=indexedDB.open('musik',1);r.onupgradeneeded=()=>r.result.createObjectStore('songs',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(e){res(null)}})}
 function op(mode,fn){return new Promise((res,rej)=>{if(!db)return rej(new Error('nodb'));try{const t=db.transaction('songs',mode),q=fn(t.objectStore('songs'));t.oncomplete=()=>res(q&&q.result);t.onerror=t.onabort=()=>rej(t.error||new Error('tx'))}catch(e){rej(e)}})}
-async function persist(s){const {url,coverUrl,...rec}=s;try{await op('readwrite',st=>st.put(rec));return true}catch(e){return false}}
+async function persist(s){try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}const {url,coverUrl,...rec}=s;try{await op('readwrite',st=>st.put(rec));return true}catch(e){return false}}
 function hydrate(s){s.url=URL.createObjectURL(s.audio);s.coverUrl=s.cover?URL.createObjectURL(s.cover):null}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)}
 
@@ -371,7 +371,15 @@ $('vol').oninput=e=>{au.volume=+e.target.value;e.target.style.setProperty('--p',
 
 /* ---------- lirik: AI, impor, LRC ---------- */
 let smp;
-async function getSample(){if(smp!==undefined)return smp;try{smp=window.claude?await claude.use('sample'):null}catch(e){smp=null}return smp}
+const AI_URL='GANTI-DENGAN-ALAMAT-WORKER';
+async function getSample(){if(smp!==undefined)return smp;try{
+  if(window.claude){smp=await claude.use('sample')}
+  else if(/^https:\/\//.test(AI_URL)){smp=async(prompt)=>{
+    const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    if(!r.ok){const e=new Error('http');e.code='server '+r.status;throw e}
+    const j=await r.json();return {text:j.text||''}}}
+  else smp=null
+}catch(e){smp=null}return smp}
 async function ai(mode){
   const sm=await getSample();if(!sm)return toast('Fitur AI hanya aktif di halaman yang dipublikasikan');
   const title=$('f-title').value.trim(),artist=$('f-artist').value.trim(),txt=$('f-lyrics').value.trim();
@@ -925,6 +933,18 @@ try{
   songs.forEach(hydrate);songs.forEach(s=>{const c=cleanTitle(s.title);if(c&&c!==s.title){s.title=c;persist(s)}});render();icons();applyPrefs();
   $('stor').textContent=db?'✓ Penyimpanan permanen aktif: lagu tetap ada setelah aplikasi ditutup.':'⚠ Penyimpanan browser tidak tersedia: lagu hanya tersimpan sementara.';
 })();
+</script>
+<script>
+setTimeout(async()=>{try{
+ const el=document.getElementById('stor');if(!el||!navigator.storage)return;
+ const per=navigator.storage.persisted?await navigator.storage.persisted():false;
+ const e=navigator.storage.estimate?await navigator.storage.estimate():null;
+ const mb=n=>Math.round(n/1048576);
+ let t=el.textContent;
+ t+=per?' Dilindungi dari pembersihan otomatis.':' Belum dilindungi dari pembersihan otomatis; pasang sebagai aplikasi untuk memperbesar peluangnya.';
+ if(e&&e.quota)t+=' Terpakai '+mb(e.usage)+' MB, sisa jatah sekitar '+mb(e.quota-e.usage)+' MB.';
+ el.textContent=t;
+}catch(x){}},2500);
 </script>
 <script>
 if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
