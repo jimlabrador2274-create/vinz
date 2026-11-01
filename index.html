@@ -72,7 +72,7 @@ nav button.on{color:var(--red)}
 #toast.on{opacity:1}
 .brow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px}.brow .btn{margin:0;padding:11px 8px;font-size:14px}
 #sync,#pe,#fp{position:fixed;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column;padding:calc(16px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto}#sync.open,#pe.open,#fp.open{display:flex}
-#sync .top,#pe .top,#fp .top{display:flex;justify-content:space-between;align-items:center}#syncL{flex:1;overflow-y:auto;padding:10px 0}
+#pe .top{display:flex;justify-content:space-between;align-items:center}#syncL{flex:1;overflow-y:auto;padding:10px 0}
 #syncL p{font-size:18px;margin:0 0 12px;color:var(--mut)}#syncL p.now{color:var(--fg);font-weight:700;font-size:22px}#syncL p.done{opacity:.5}
 #tap{padding:24px;font-size:18px}
 .grab{display:block;width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.55)}
@@ -157,26 +157,15 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
     <div id="setAdd" style="display:none">
     <h2 id="formTitle" style="margin-top:0">Tambah Lagu</h2>
     <label>Judul *</label><input id="f-title">
-    <label>Artis</label><input id="f-artist"><button class="sm" id="artAi" style="margin:-4px 0 8px">✨ Isi artis otomatis</button>
-    <label>Album</label><input id="f-album"><button class="sm" id="albAi" style="margin:-4px 0 8px">✨ Isi album otomatis</button>
+    <label>Artis</label><input id="f-artist">
+    <label>Album</label><input id="f-album">
     <label>File lagu (mp3, m4a, wav; bisa pilih banyak) <span id="aNote"></span></label><input id="f-audio" type="file" accept="audio/*" multiple>
     <label>Foto album</label><input id="f-cover" type="file" accept="image/*">
     <label>Lirik</label><textarea id="f-lyrics" placeholder="Tempel lirik di sini..."></textarea>
-    <div class="brow"><button class="btn sec" id="aiFind">✨ Cari lirik (AI)</button><button class="btn sec" id="aiClean">✨ Rapikan (AI)</button><button class="btn sec" id="gBtn">🔎 Cari di Google</button><button class="btn sec" id="lrcBtn">📂 Impor .lrc / .txt</button></div>
-    <button class="btn sec" id="mkLrc" style="margin:0 0 10px">⏱ Buat LRC (sinkron manual)</button>
-    <button class="btn sec" id="detBtn" style="margin:0 0 8px">🎤 Deteksi lirik otomatis dari lagu</button>
-    
-    <div class="brow"><select id="detLang"><option value="indonesian">Bahasa Indonesia</option><option value="english">English</option><option value="">Otomatis</option></select><select id="detModel"><option value="Xenova/whisper-tiny">Cepat (±40 MB)</option><option value="Xenova/whisper-base">Lebih akurat (±80 MB)</option></select></div>
-    <div class="hint" id="detSt">Mendengarkan lagu lalu menulis liriknya lengkap dengan waktu (format LRC). Butuh internet saat pertama kali untuk mengunduh model. Berjalan di APK atau file lokal, tidak di halaman claude.ai. Hasil bisa meleset, periksa lagi.</div>
-    <input id="f-lrc" type="file" accept=".lrc,.txt,text/plain" style="display:none">
-    <div class="hint">Format LRC: [00:12.50] Baris lirik. Dengan LRC, lirik bergerak otomatis mengikuti lagu. AI hanya bisa menuliskan lirik lagu domain publik; untuk lagu berhak cipta, cari di Google lalu tempel atau impor file .lrc.</div>
+    <div class="hint">Tempel lirik biasa, atau format LRC: [00:12.50] Baris lirik, supaya lirik bergerak otomatis mengikuti lagu.</div>
     <button class="btn" id="save">Simpan Lagu</button>
     <button class="btn sec" id="cancel" style="display:none">Batal Edit</button>
-    <h2>Lagu Tersimpan</h2><button class="btn sec" id="fillA" style="margin:0 0 8px">✨ Isi artis otomatis</button>
-    <button class="btn sec" id="fillAl" style="margin:0 0 8px">✨ Isi album otomatis</button>
-    <div class="hint">Album dicari berurutan: tag file, lalu database musik online (hanya diisi kalau judul dan artis cocok tepat), terakhir AI. Butuh internet, dan lagu harus sudah punya artis.</div>
-    <div class="hint">Membaca tag artis dari file lagu (mp3). Kalau tidak ada tag, artis ditebak AI (hanya aktif di claude.ai). Tebakan AI bisa meleset.</div><button class="btn sec" id="fillL" style="margin:0 0 8px">✨ Isi lirik otomatis (semua lagu)</button>
-    <div class="hint">Mendengarkan tiap lagu yang belum berlirik lalu menuliskan liriknya (berwaktu) langsung di perangkatmu. Butuh internet saat pertama kali, berjalan di APK atau file lokal, dan bisa lama. Hasil bisa meleset, periksa lewat Edit.</div><div id="mine"></div>
+    <h2>Lagu Tersimpan</h2><div id="mine"></div>
   </div>
     <div id="setStats" style="display:none"></div>
     <div id="setLook" style="display:none">
@@ -207,19 +196,8 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
 <div class="vol"><span>🔈</span><input type="range" id="vol" min="0" max="1" step="0.01" value="1"><span>🔊</span></div>
 <div class="bot"><button class="ly" id="lyBtn">❝</button><button id="qBtn">☰</button></div>
 </div>
-<div id="sync"><div class="top"><button class="sm" id="syncClose">Batal</button><b>Buat LRC</b><button class="sm" id="syncSave">Simpan</button></div>
-<div class="hint" style="margin:8px 0">Putar lagu, lalu tekan TAP tepat saat tiap baris mulai dinyanyikan.</div>
-<div id="syncL"></div><audio id="sau"></audio>
-<div class="ctl"><button id="syncBack">⏪</button><button id="syncPP">⏯</button><button id="syncUndo">↶</button></div>
-<button class="btn" id="tap">TAP</button></div>
 <div id="pe"><div class="top"><button class="sm" id="peCancel">Batal</button><b id="peT">Playlist baru</b><button class="sm" id="peSave">Simpan</button></div>
 <div id="peB"><div id="pePrev" class="pld"></div><label>Foto playlist</label><input id="peCover" type="file" accept="image/*"><label>Nama playlist *</label><input id="peName" placeholder="Nama playlist"><label>Pilih lagu</label><div id="peSongs"></div></div></div>
-<div id="fp"><div class="top"><button class="sm" id="fpStop">Hentikan</button><b>Isi Lirik Otomatis</b><button class="sm" id="fpClose">Sembunyikan</button></div>
-<div class="fpn" id="fpN">0 / 0</div><div class="fps" id="fpSt">Menyiapkan...</div>
-<div class="fpb" id="fpB"><i id="fpI"></i></div>
-<div class="fpb ind" id="fpB2"><i></i></div>
-<div class="fps" id="fpT"></div>
-<div class="fpl" id="fpL"></div></div>
 <div id="toast"></div>
 <audio id="au"></audio>
 <script>
@@ -369,93 +347,6 @@ function tint(){const f=$('full');
 $('fav').onclick=$('mhFav').onclick=()=>{if(!cur)return;cur.fav=!cur.fav;$('mhFav').textContent=cur.fav?'★':'☆';$('fav').textContent=cur.fav?'★':'☆';persist(cur)};
 $('vol').oninput=e=>{au.volume=+e.target.value;e.target.style.setProperty('--p',e.target.value*100+'%')};
 
-/* ---------- lirik: AI, impor, LRC ---------- */
-let smp;
-const AI_URL='GANTI-DENGAN-ALAMAT-WORKER';
-async function getSample(){if(smp!==undefined)return smp;try{
-  if(window.claude){smp=await claude.use('sample')}
-  else if(/^https:\/\//.test(AI_URL)){smp=async(prompt)=>{
-    const r=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-    if(!r.ok){const e=new Error('http');e.code='server '+r.status;throw e}
-    const j=await r.json();return {text:j.text||''}}}
-  else smp=null
-}catch(e){smp=null}return smp}
-async function ai(mode){
-  const sm=await getSample();if(!sm)return toast('Fitur AI hanya aktif di halaman yang dipublikasikan');
-  const title=$('f-title').value.trim(),artist=$('f-artist').value.trim(),txt=$('f-lyrics').value.trim();
-  if(mode==='find'&&!title)return toast('Isi judul lagu dulu');
-  if(mode==='clean'&&!txt)return toast('Tempel lirik dulu');
-  const prompt=mode==='find'
-    ?`Lagu: "${title}" oleh "${artist||'tidak diketahui'}". Jika lagu ini berada di domain publik (hak cipta sudah habis, misalnya lagu tradisional atau klasik lama), tuliskan liriknya lengkap, satu baris per baris, tanpa komentar. Jika masih berhak cipta atau kamu tidak yakin, balas persis: TIDAK_TERSEDIA`
-    :`Rapikan teks lirik berikut: hapus chord, penanda seperti [Chorus] dan komentar, perbaiki spasi dan baris kosong berlebih. Pertahankan penanda waktu [mm:ss.xx] jika ada. Balas hanya liriknya.\n\n${txt}`;
-  const b=$(mode==='find'?'aiFind':'aiClean'),old=b.textContent;b.disabled=true;b.textContent='Memproses…';
-  try{const r=await sm(prompt,{cache:false});const t=(r.text||'').trim();
-    if(!t||t.includes('TIDAK_TERSEDIA'))toast('Tidak tersedia (berhak cipta). Pakai Cari di Google');
-    else{$('f-lyrics').value=t;toast('Selesai')}}
-  catch(e){toast('AI gagal: '+((e&&e.code)||'coba lagi'))}
-  b.disabled=false;b.textContent=old;
-}
-
-$('aiFind').onclick=()=>ai('find');$('aiClean').onclick=()=>ai('clean');
-$('gBtn').onclick=()=>{const t=$('f-title').value.trim();if(!t)return toast('Isi judul lagu dulu');window.open('https://www.google.com/search?q='+encodeURIComponent(t+' '+$('f-artist').value.trim()+' lirik lrc'),'_blank','noopener')};
-$('lrcBtn').onclick=()=>$('f-lrc').click();
-$('f-lrc').onchange=async e=>{const f=e.target.files[0];if(f){$('f-lyrics').value=await f.text();toast('Lirik diimpor');e.target.value=''}};
-let sl=[],st=[],si=0;
-const fmtL=t=>{const m=Math.floor(t/60),s=(t%60).toFixed(2).padStart(5,'0');return String(m).padStart(2,'0')+':'+s};
-function renderSync(){
-  $('syncL').innerHTML=sl.map((l,i)=>`<p class="${i<si?'done':i===si?'now':''}">${i<si?'['+fmtL(st[i])+'] ':''}${esc(l)}</p>`).join('');
-  const n=$('syncL').children[Math.min(si,sl.length-1)];n&&n.scrollIntoView({block:'center',behavior:'smooth'});
-  $('tap').textContent=si<sl.length?'TAP · baris berikutnya':'Semua baris selesai · tekan Simpan';
-}
-$('mkLrc').onclick=()=>{
-  const raw=$('f-lyrics').value.split('\n').map(l=>l.replace(/^\[\d+:\d+(?:\.\d+)?\]\s*/,'').trim()).filter(Boolean);
-  if(!raw.length)return toast('Isi lirik dulu');
-  const f=$('f-audio').files[0],s=editId&&songs.find(x=>x.id===editId);
-  if(!f&&!s)return toast('Pilih file lagu, atau edit lagu yang sudah ada');
-  $('sau').src=f?URL.createObjectURL(f):s.url;
-  sl=raw;st=[];si=0;renderSync();go({sync:true});$('sau').play().catch(()=>{});
-};
-$('tap').onclick=()=>{if(si>=sl.length)return;st[si]=$('sau').currentTime;si++;renderSync()};
-$('syncUndo').onclick=()=>{if(si>0){si--;$('sau').currentTime=Math.max(0,st[si]-2);renderSync()}};
-$('syncPP').onclick=()=>{const a=$('sau');a.paused?a.play():a.pause()};
-$('syncBack').onclick=()=>{$('sau').currentTime=Math.max(0,$('sau').currentTime-5)};
-$('syncClose').onclick=()=>{$('sau').pause();back()};
-$('syncSave').onclick=()=>{if(!si)return toast('Belum ada baris yang di-TAP');$('f-lyrics').value=sl.map((l,i)=>i<si?`[${fmtL(st[i])}] ${l}`:l).join('\n');$('sau').pause();back();toast('LRC dibuat. Tekan Simpan Lagu')};
-
-/* ---------- deteksi lirik (Whisper di browser) ---------- */
-let asr=null,asrKey='';
-const st2=t=>{$('detSt').textContent=t;const e=$('fpSt');if(e&&fpRun)e.textContent=t};
-async function pcm(blob){
-  const ac=new (window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
-  const buf=await ac.decodeAudioData(await blob.arrayBuffer());
-  const n=buf.numberOfChannels,len=buf.length,out=new Float32Array(len);
-  for(let c=0;c<n;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)out[i]+=d[i]/n}
-  try{ac.close()}catch(e){}
-  return out;
-}
-$('detBtn').onclick=async()=>{
-  const f=$('f-audio').files[0]||(editId&&(songs.find(x=>x.id===editId)||{}).audio);
-  if(!f)return toast('Pilih file lagu dulu');
-  const b=$('detBtn');b.disabled=true;
-  try{
-    st2('Memuat mesin deteksi...');
-    const T=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
-    const model=$('detModel').value;
-    if(!asr||asrKey!==model){
-      asr=await T.pipeline('automatic-speech-recognition',model,{progress_callback:p=>{if(p.status==='progress')st2('Mengunduh model... '+Math.round(p.progress||0)+'%')}});
-      asrKey=model;
-    }
-    st2('Membaca audio...');
-    const a=await pcm(f);
-    st2('Mendeteksi lirik... bisa beberapa menit, jangan tutup aplikasi.');
-    const lang=$('detLang').value;
-    const o=await asr(a,Object.assign({chunk_length_s:30,stride_length_s:5,return_timestamps:true,task:'transcribe'},lang?{language:lang}:{}));
-    const lines=(o.chunks||[]).map(c=>({t:(c.timestamp&&c.timestamp[0])||0,x:(c.text||'').trim()})).filter(l=>l.x);
-    if(!lines.length){st2('Tidak ada lirik terdeteksi.');toast('Tidak terdeteksi')}
-    else{$('f-lyrics').value=lines.map(l=>'['+fmtL(l.t)+'] '+l.x).join('\n');st2('Selesai: '+lines.length+' baris. Periksa dan rapikan bila perlu.');toast('Lirik terdeteksi')}
-  }catch(e){console.error(e);st2('Gagal: '+((e&&e.message)||e)+'. Fitur ini butuh internet ke Hugging Face dan tidak jalan di halaman claude.ai; pakai APK atau file lokal.');toast('Deteksi gagal')}
-  b.disabled=false;
-};
 
 /* ---------- playlist ---------- */
 let lists=[],plOpen=null,q=null,peId=null,peCover=null;
@@ -510,7 +401,7 @@ async function delPL(p){
   lists=lists.filter(x=>x.id!==p.id);plOpen=null;renderPL();
 }
 
-/* ---------- tag ID3 + isi artis otomatis ---------- */
+/* ---------- tag ID3 ---------- */
 function txt(d){
   if(!d.length)return '';const e=d[0],b=d.subarray(1);let s;
   if(e===0)s=new TextDecoder('windows-1252').decode(b);
@@ -550,167 +441,6 @@ async function readTags(file){
   }
   return out;
 }
-async function guessArtist(file,title){
-  let a='';
-  try{a=(await readTags(file)).artist||''}catch(e){}
-  if(a)return {a,src:'tag'};
-  const sm=await getSample();
-  if(sm&&title){
-    try{
-      const r=await sm('Lagu berjudul "'+title+'". Siapa artis atau penyanyi aslinya? Balas hanya dengan nama artis, tanpa tanda baca tambahan. Jika tidak yakin, balas persis: TIDAK_TAHU',{cache:false});
-      const t=String(r.text||'').trim().split('\n')[0].replace(/^["'\s]+|["'.\s]+$/g,'');
-      if(t&&!/TIDAK_TAHU/i.test(t)&&t.length<80)return {a:t,src:'ai'};
-    }catch(e){}
-  }
-  return {a:'',src:sm?'':'noai'};
-}
-$('artAi').onclick=async()=>{
-  const f=$('f-audio').files[0]||(editId&&(songs.find(x=>x.id===editId)||{}).audio),t=$('f-title').value.trim();
-  if(!f&&!t)return toast('Pilih file lagu atau isi judul dulu');
-  const b=$('artAi'),old=b.textContent;b.disabled=true;b.textContent='Mencari...';
-  const r=f?await guessArtist(f,t):await guessArtist(new Blob([]),t);
-  b.disabled=false;b.textContent=old;
-  if(r.a){$('f-artist').value=r.a;toast(r.src==='tag'?'Artis diambil dari tag file':'Artis ditebak AI, periksa lagi')}
-  else toast(r.src==='noai'?'Tidak ada tag artis. AI hanya aktif di claude.ai':'Artis tidak ditemukan')
-};
-$('fillA').onclick=async()=>{
-  const T=songs.filter(s=>!s.artist);
-  if(!T.length)return toast('Semua lagu sudah punya artis');
-  const b=$('fillA');b.disabled=true;let n=0,noai=false;
-  for(let i=0;i<T.length;i++){
-    b.textContent='Memproses '+(i+1)+'/'+T.length+'...';
-    const r=await guessArtist(T[i].audio,T[i].title);
-    if(r.src==='noai')noai=true;
-    if(r.a){T[i].artist=r.a;await persist(T[i]);n++}
-  }
-  b.disabled=false;b.textContent='✨ Isi artis otomatis';render();
-  toast(n+' dari '+T.length+' lagu terisi'+(n<T.length&&noai?'. Sisanya tanpa tag; AI hanya aktif di claude.ai':''));
-};
-
-/* ---------- isi lirik otomatis untuk semua lagu (di perangkat) ---------- */
-async function loadASR(){
-  const model=$('detModel').value;
-  if(asr&&asrKey===model)return asr;
-  st2('Memuat mesin deteksi...');
-  const T=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2');
-  asr=await T.pipeline('automatic-speech-recognition',model,{progress_callback:p=>{if(p.status==='progress')st2('Mengunduh model... '+Math.round(p.progress||0)+'%')}});
-  asrKey=model;return asr;
-}
-async function transcribe(file){
-  const a=await pcm(file),lang=$('detLang').value;
-  const o=await asr(a,Object.assign({chunk_length_s:30,stride_length_s:5,return_timestamps:true,task:'transcribe'},lang?{language:lang}:{}));
-  return (o.chunks||[]).map(c=>({t:(c.timestamp&&c.timestamp[0])||0,x:(c.text||'').trim()})).filter(l=>l.x).map(l=>'['+fmtL(l.t)+'] '+l.x).join('\n');
-}
-let fpRun=false,fpStop=false,fpTimer=null;
-function fpRows(T,st){
-  $('fpL').innerHTML=T.map((x,i)=>{const r=st[i];
-    const ic=r.s==='run'?'<span class="spin"></span>':r.s==='ok'?'✓':r.s==='fail'?'✗':r.s==='skip'?'–':'⏳';
-    return '<div class="fpr '+r.s+'"><span class="ic">'+ic+'</span><span class="tt">'+esc(x.title)+'</span><small>'+esc(r.m)+'</small></div>'}).join('');
-  const now=$('fpL').querySelector('.run');if(now&&now.scrollIntoView)now.scrollIntoView({block:'nearest'});
-}
-$('fpStop').onclick=()=>{fpStop=true;$('fpStop').disabled=true;$('fpStop').textContent='Menghentikan...';$('fpSt').textContent='Berhenti setelah lagu ini selesai...'};
-$('fpClose').onclick=()=>back();
-$('fillL').onclick=async()=>{
-  if(fpRun){go({fp:true});return}
-  const T=songs.filter(s=>!(s.lyrics||'').trim());
-  if(!T.length)return toast('Semua lagu sudah punya lirik');
-  if(!confirm(T.length+' lagu akan diproses. Ini bisa lama dan menguras baterai; biarkan aplikasi tetap terbuka. Lanjut?'))return;
-  const st=T.map(()=>({s:'wait',m:'menunggu'}));
-  const b=$('fillL'),old=b.textContent;
-  let n=0,fail=0,empty=0,done=0,err='',wl=null;
-  fpRun=true;fpStop=false;
-  $('fpStop').style.display='';$('fpStop').disabled=false;$('fpStop').textContent='Hentikan';$('fpClose').textContent='Sembunyikan';
-  $('fpB2').style.display='';
-  const t0=Date.now();
-  const tick=()=>{$('fpT').textContent='Waktu berjalan: '+fmt((Date.now()-t0)/1000)};
-  tick();fpTimer=setInterval(tick,1000);
-  const upd=msg=>{$('fpN').textContent=done+' / '+T.length;$('fpI').style.width=(done/T.length*100)+'%';if(msg)$('fpSt').textContent=msg;fpRows(T,st);b.textContent='Lihat proses ('+done+'/'+T.length+')'};
-  go({fp:true});upd('Memuat mesin deteksi...');
-  try{wl=await navigator.wakeLock.request('screen')}catch(e){}
-  try{
-    await loadASR();
-    for(let i=0;i<T.length&&!fpStop;i++){
-      st[i]={s:'run',m:'memproses'};
-      upd('Mendeteksi lirik: '+T[i].title);
-      try{
-        const l=await transcribe(T[i].audio);
-        if(l){T[i].lyrics=l;await persist(T[i]);n++;st[i]={s:'ok',m:l.split('\n').length+' baris'}}
-        else{empty++;st[i]={s:'skip',m:'tidak terdeteksi'}}
-      }catch(e){console.error(e);fail++;st[i]={s:'fail',m:'gagal'}}
-      done++;upd('');
-    }
-  }catch(e){err=(e&&e.message)||String(e)}
-  clearInterval(fpTimer);fpRun=false;
-  try{wl&&wl.release()}catch(e){}
-  $('fpB2').style.display='none';$('fpStop').style.display='none';$('fpClose').textContent='Tutup';
-  fpRows(T,st);$('fpI').style.width=(done/T.length*100)+'%';$('fpN').textContent=done+' / '+T.length;
-  $('fpSt').textContent=err?'Gagal memuat mesin: '+err.slice(0,80)+'. Butuh internet dan hanya jalan di APK atau file lokal.'
-    :(fpStop?'Dihentikan. ':'Selesai. ')+n+' terisi'+(empty?', '+empty+' tidak terdeteksi':'')+(fail?', '+fail+' gagal':'')+'.';
-  b.textContent=old;render();
-  if(!err)toast(n+' dari '+T.length+' lagu terisi liriknya');
-};
-
-/* ---------- isi album otomatis ---------- */
-const nrm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(\s*feat[^)]*\)|\[\s*feat[^\]]*\]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
-async function itunes(params){
-  try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams(params));if(!r.ok)return [];return (await r.json()).results||[]}catch(e){return null}
-}
-async function lookupAlbum(title,artist){
-  if(!title||!artist)return {a:'',why:'noartist'};
-  const base={term:title+' '+artist,media:'music',entity:'song',limit:25};
-  const rs=await Promise.all([itunes(base),itunes(Object.assign({country:'ID'},base))]);
-  if(rs.every(x=>x===null))return {a:'',why:'net'};
-  const T=nrm(title),A=nrm(String(artist).split(/,|&|;|\sfeat\.?\s|\sx\s/i)[0]);
-  const seen=new Set(),c=[];
-  for(const r of rs.flat().filter(Boolean)){
-    if(!r.collectionName||seen.has(r.trackId))continue;seen.add(r.trackId);
-    const ra=nrm(r.artistName);
-    if(nrm(r.trackName)===T&&A&&(ra.includes(A)||A.includes(ra)))c.push(r);
-  }
-  if(!c.length)return {a:'',why:'none'};
-  const sc=r=>(/\s-\s(single|ep)$/i.test(r.collectionName)?2:0)+(/various/i.test(r.collectionArtistName||'')?4:0);
-  c.sort((x,y)=>sc(x)-sc(y)||String(x.releaseDate).localeCompare(String(y.releaseDate)));
-  return {a:c[0].collectionName,why:'db'};
-}
-async function guessAlbum(file,title,artist){
-  let a='';
-  try{a=(await readTags(file)).album||''}catch(e){}
-  if(a)return {a,src:'tag'};
-  const r=await lookupAlbum(title,artist);
-  if(r.a)return {a:r.a,src:'db'};
-  const sm=await getSample();
-  if(sm&&title&&artist){
-    try{
-      const o=await sm('Lagu "'+title+'" oleh '+artist+'. Sebutkan nama album asli tempat lagu ini pertama kali dirilis. Balas hanya dengan nama album. Jika tidak yakin 100%, balas persis: TIDAK_TAHU',{cache:false});
-      const t=String(o.text||'').trim().split('\n')[0].replace(/^["'\s]+|["'.\s]+$/g,'');
-      if(t&&!/TIDAK_TAHU/i.test(t)&&t.length<100)return {a:t,src:'ai'};
-    }catch(e){}
-  }
-  return {a:'',src:'',why:r.why};
-}
-$('albAi').onclick=async()=>{
-  const f=$('f-audio').files[0]||(editId&&(songs.find(x=>x.id===editId)||{}).audio)||new Blob([]),t=$('f-title').value.trim(),a=$('f-artist').value.trim();
-  if(!t||!a)return toast('Isi judul dan artis dulu');
-  const b=$('albAi'),old=b.textContent;b.disabled=true;b.textContent='Mencari...';
-  const r=await guessAlbum(f,t,a);
-  b.disabled=false;b.textContent=old;
-  if(r.a){$('f-album').value=r.a;toast(r.src==='tag'?'Album dari tag file':r.src==='db'?'Album ditemukan (cocok tepat)':'Album ditebak AI, periksa lagi')}
-  else toast(r.why==='net'?'Butuh internet untuk mencari album':'Tidak ada yang cocok tepat. Isi manual');
-};
-$('fillAl').onclick=async()=>{
-  const T=songs.filter(s=>!s.album&&s.artist);
-  if(!T.length)return toast(songs.some(s=>!s.album)?'Isi artis dulu (tombol Isi artis otomatis)':'Semua lagu sudah punya album');
-  const b=$('fillAl'),old=b.textContent;b.disabled=true;let n=0,net=false;
-  for(let i=0;i<T.length;i++){
-    b.textContent='Memproses '+(i+1)+'/'+T.length+'...';
-    const r=await guessAlbum(T[i].audio,T[i].title,T[i].artist);
-    if(r.why==='net')net=true;
-    if(r.a){T[i].album=r.a;await persist(T[i]);n++}
-  }
-  b.disabled=false;b.textContent=old;render();
-  toast(n+' dari '+T.length+' lagu terisi albumnya'+(n<T.length&&net?'. Sebagian butuh internet':''));
-};
-
 /* ---------- album ---------- */
 let alOpen=null;
 function albums(){
@@ -899,17 +629,16 @@ document.addEventListener('mouseup',lpEnd);
 pbx.addEventListener('contextmenu',e=>{if(e.target.closest('[data-ps]'))e.preventDefault()});
 
 /* ---------- navigasi (tombol/gestur kembali) ---------- */
-let view={tab:'home',full:false,sync:false},histOK=true,armed=false;
+let view={tab:'home',full:false},histOK=true,armed=false;
 function apply(v){
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v.tab));
   document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v.tab));
   $('full').classList.toggle('open',!!v.full);
-  if(!v.sync&&$('sync').classList.contains('open'))$('sau').pause();
-  $('sync').classList.toggle('open',!!v.sync);$('pe').classList.toggle('open',!!v.pe);$('fp').classList.toggle('open',!!v.fp);setPage(v.tab==='set'?(v.sp||''):'');
+  $('pe').classList.toggle('open',!!v.pe);setPage(v.tab==='set'?(v.sp||''):'');
   if(v.tab!==apply.t){document.querySelector('main').scrollTop=0;apply.t=v.tab}
 }
 function go(p){view={...view,...p};try{history.pushState({...view,root:false},'')}catch(e){histOK=false}apply(view)}
-function back(){if(histOK){try{history.back();return}catch(e){}}view={...view,full:false,sync:false,pe:false,fp:false};apply(view)}
+function back(){if(histOK){try{history.back();return}catch(e){}}view={...view,full:false,pe:false};apply(view)}
 try{
   history.replaceState({...view,root:true},'');
   history.pushState({...view,root:false},'');
@@ -920,7 +649,7 @@ try{
       armed=true;setTimeout(()=>armed=false,2000);toast('Geser lagi untuk keluar');
       history.pushState({...view,root:false},'');return;
     }
-    view={tab:s.tab,full:s.full,sync:s.sync,pe:s.pe,fp:s.fp,sp:s.sp};apply(view);
+    view={tab:s.tab,full:s.full,pe:s.pe,sp:s.sp};apply(view);
   });
 }catch(e){histOK=false}
 
