@@ -165,7 +165,7 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
     <div class="hint">Tempel lirik biasa, atau format LRC: [00:12.50] Baris lirik, supaya lirik bergerak otomatis mengikuti lagu.</div>
     <button class="btn" id="save">Simpan Lagu</button>
     <button class="btn sec" id="cancel" style="display:none">Batal Edit</button>
-    <h2>Lagu Tersimpan</h2><div id="mine"></div>
+    <h2>Lagu Tersimpan</h2><input id="mq" type="search" placeholder="Cari lagu tersimpan"><div id="mine"></div>
   </div>
     <div id="setStats" style="display:none"></div>
     <div id="setLook" style="display:none">
@@ -223,7 +223,9 @@ function render(){renderPL();renderAL();
   const q=$('q').value.toLowerCase();
   const f=songs.filter(s=>(s.title+' '+s.artist+' '+(s.album||'')).toLowerCase().includes(q));
   $('list').innerHTML=f.length?f.map(s=>rowHTML(s)).join(''):emptyMsg;
-  $('mine').innerHTML=songs.length?songs.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`)).join(''):'<div class="empty">Belum ada lagu tersimpan.</div>';
+  const mq=$('mq').value.toLowerCase().trim();
+  const fm=songs.filter(s=>(s.title+' '+(s.artist||'')+' '+(s.album||'')).toLowerCase().includes(mq));
+  $('mine').innerHTML=!songs.length?'<div class="empty">Belum ada lagu tersimpan.</div>':fm.length?fm.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`)).join(''):'<div class="empty">Tidak ada lagu yang cocok.</div>';
 }
 document.addEventListener('click',e=>{
   const ed=e.target.closest('[data-e]'),dl=e.target.closest('[data-d]');
@@ -233,7 +235,7 @@ document.addEventListener('click',e=>{
   if(el&&!el.closest('#v-set'))play(+el.dataset.id,!!el.closest('#qv'));
 });
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(view.tab!==b.dataset.v)go({tab:b.dataset.v,sp:''});else if(view.sp)go({sp:''})});
-$('q').oninput=render;
+$('q').oninput=render;$('mq').oninput=render;
 
 /* ---------- form tambah/edit ---------- */
 function resetForm(){editId=null;['f-title','f-artist','f-album','f-audio','f-cover','f-lyrics'].forEach(i=>$(i).value='');$('formTitle').textContent='Tambah Lagu';$('cancel').style.display='none';$('aNote').textContent=''}
