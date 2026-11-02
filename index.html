@@ -130,7 +130,7 @@ body.playing #bigArt .art{transform:scale(1)}
 #mhFav{background:none;border:0;font-size:22px;cursor:pointer}
 #full.ly #stage{align-items:flex-start}
 #full.ly #lyr{padding:1vh 0 32vh;-webkit-mask-image:linear-gradient(transparent,#000 4%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 4%,#000 82%,transparent)}
-#full #lyr p{filter:blur(2.5px);font-size:30px;line-height:1.2}
+#full #lyr p{filter:blur(2.5px);font-size:30px;line-height:1.2;transition:filter .45s ease,color .45s ease,opacity .45s ease}
 #full #lyr p.act,#full #lyr.plain p{filter:none}
 #seek,#vol{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:linear-gradient(#fff,#fff) 0 0/var(--p,0%) 100% no-repeat,rgba(255,255,255,.3)}
 #vol{--p:100%;height:5px}
@@ -343,10 +343,15 @@ function setUI(){
 }
 function icons(){const p=au.paused?'▶︎':'❚❚';$('pp').innerHTML=$('miniPP').innerHTML=au.paused?PLAY:PAUSE;document.body.classList.toggle('playing',!au.paused)}
 au.onplay=au.onpause=icons;au.onended=()=>step(1);
+let lyrAnim=0;
+function lyrScroll(p){const ly=$('lyr');cancelAnimationFrame(lyrAnim);const from=ly.scrollTop,t0=performance.now(),D=550;
+  const tgt=()=>Math.max(0,ly.scrollTop+(p.getBoundingClientRect().top-ly.getBoundingClientRect().top)-ly.clientHeight*.28);
+  const f=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);ly.scrollTop=from+(tgt()-from)*e;if(k<1)lyrAnim=requestAnimationFrame(f)};
+  lyrAnim=requestAnimationFrame(f)}
 au.ontimeupdate=()=>{
   $('seek').max=au.duration||100;$('seek').value=au.currentTime;$('seek').style.setProperty('--p',(au.duration?au.currentTime/au.duration*100:0)+'%');$('tc').textContent=fmt(au.currentTime);$('td').textContent='-'+fmt(Math.max(0,au.duration-au.currentTime));
   if(lrc&&lrc.timed){let a=-1;lrc.lines.forEach((l,i)=>{if(l.t!==null&&l.t<=au.currentTime)a=i});
-    const ps=$('lyr').children;if(a>=0&&!ps[a].classList.contains('act')){[...ps].forEach(p=>p.classList.remove('act'));ps[a].classList.add('act');if($('full').classList.contains('ly'))ps[a].scrollIntoView({behavior:'smooth',block:'center'})}}
+    const ps=$('lyr').children;if(a>=0&&!ps[a].classList.contains('act')){[...ps].forEach(p=>p.classList.remove('act'));ps[a].classList.add('act');if($('full').classList.contains('ly'))lyrScroll(ps[a])}}
 };
 $('seek').oninput=e=>{au.currentTime=e.target.value};
 const toggle=()=>{au.paused?au.play():au.pause()};
