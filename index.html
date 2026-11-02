@@ -41,6 +41,7 @@ label{display:block;font-size:13px;color:var(--mut);margin:4px 0 4px}
 input[type=file]{padding:10px}
 .btn{background:var(--red);color:#fff;border:0;border-radius:10px;padding:13px 16px;font-size:16px;font-weight:600;width:100%;cursor:pointer}
 .btn.sec{background:var(--card);color:var(--fg);margin-top:8px}
+.fc{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px;-webkit-overflow-scrolling:touch}.fc button{flex:none;background:var(--card);color:var(--fg);border:0;border-radius:16px;padding:8px 13px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}.fc button.on{background:var(--red);color:#fff}
 .sm{background:none;border:0;color:var(--red);font-size:14px;padding:6px;cursor:pointer}
 .empty{color:var(--mut);text-align:center;padding:40px 10px;line-height:1.5}
 .hint{font-size:12px;color:var(--mut);margin:-4px 0 10px}
@@ -165,7 +166,7 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
     <div class="hint">Tempel lirik biasa, atau format LRC: [00:12.50] Baris lirik, supaya lirik bergerak otomatis mengikuti lagu.</div>
     <button class="btn" id="save">Simpan Lagu</button>
     <button class="btn sec" id="cancel" style="display:none">Batal Edit</button>
-    <h2>Lagu Tersimpan</h2><input id="mq" type="search" placeholder="Cari lagu tersimpan"><div id="mine"></div>
+    <h2>Lagu Tersimpan</h2><input id="mq" type="search" placeholder="Cari lagu tersimpan"><div class="fc" id="mf"></div><div id="mine"></div>
   </div>
     <div id="setStats" style="display:none"></div>
     <div id="setLook" style="display:none">
@@ -203,7 +204,7 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let songs=[],cur=null,editId=null,lrc=null,db=null;
+let songs=[],cur=null,editId=null,lrc=null,db=null,mFilter='';
 const au=$('au');
 
 /* ---------- penyimpanan (IndexedDB) ---------- */
@@ -224,10 +225,15 @@ function render(){renderPL();renderAL();
   const f=songs.filter(s=>(s.title+' '+s.artist+' '+(s.album||'')).toLowerCase().includes(q));
   $('list').innerHTML=f.length?f.map(s=>rowHTML(s)).join(''):emptyMsg;
   const mq=$('mq').value.toLowerCase().trim();
-  const fm=songs.filter(s=>(s.title+' '+(s.artist||'')+' '+(s.album||'')).toLowerCase().includes(mq));
-  $('mine').innerHTML=!songs.length?'<div class="empty">Belum ada lagu tersimpan.</div>':fm.length?fm.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`)).join(''):'<div class="empty">Tidak ada lagu yang cocok.</div>';
+  const blank=v=>!v||!String(v).trim();
+  const miss={lirik:s=>blank(s.lyrics),foto:s=>!s.cover,album:s=>blank(s.album),artis:s=>blank(s.artist),judul:s=>blank(s.title)};
+  const mfLab=[['','Semua'],['lirik','Tanpa lirik'],['foto','Tanpa foto album'],['album','Tanpa album'],['artis','Tanpa artis'],['judul','Tanpa judul']];
+  $('mf').innerHTML=mfLab.map(([k,l])=>`<button data-mf="${k}" class="${mFilter===k?'on':''}">${l}${k?' ('+songs.filter(miss[k]).length+')':''}</button>`).join('');
+  const fm=songs.filter(s=>(s.title+' '+(s.artist||'')+' '+(s.album||'')).toLowerCase().includes(mq)&&(!mFilter||miss[mFilter](s)));
+  $('mine').innerHTML=!songs.length?'<div class="empty">Belum ada lagu tersimpan.</div>':fm.length?fm.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`)).join(''):'<div class="empty">'+(mFilter&&!mq?'Semua lagu sudah lengkap untuk kategori ini.':'Tidak ada lagu yang cocok.')+'</div>';
 }
 document.addEventListener('click',e=>{
+  const mfb=e.target.closest('[data-mf]');if(mfb){mFilter=mfb.dataset.mf;return render()}
   const ed=e.target.closest('[data-e]'),dl=e.target.closest('[data-d]');
   if(ed){e.stopPropagation();return startEdit(+ed.dataset.e)}
   if(dl){e.stopPropagation();return del(+dl.dataset.d)}
