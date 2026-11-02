@@ -253,7 +253,7 @@ $('tidy').onclick=async()=>{
 
 /* ---------- form tambah/edit ---------- */
 function resetForm(){editId=null;['f-title','f-artist','f-album','f-audio','f-cover','f-lyrics'].forEach(i=>$(i).value='');$('formTitle').textContent='Tambah Lagu';$('cancel').style.display='none';$('aNote').textContent=''}
-function startEdit(id){const s=songs.find(x=>x.id===id);if(!s)return;editId=id;$('f-title').value=s.title;$('f-artist').value=s.artist||'';$('f-album').value=s.album||'';$('f-lyrics').value=s.lyrics||'';$('formTitle').textContent='Edit Lagu';$('cancel').style.display='block';$('aNote').textContent='(kosongkan jika tidak diganti)';window.scrollTo(0,0);document.querySelector('main').scrollTop=0}
+function startEdit(id){const s=songs.find(x=>x.id===id);if(!s)return;editId=id;$('f-title').value=s.title;$('f-artist').value=s.artist||'';$('f-album').value=s.album||'';$('f-lyrics').value=stripMeta(s.lyrics);$('formTitle').textContent='Edit Lagu';$('cancel').style.display='block';$('aNote').textContent='(kosongkan jika tidak diganti)';window.scrollTo(0,0);document.querySelector('main').scrollTop=0}
 $('cancel').onclick=resetForm;
 function cleanTitle(t){
   return String(t).replace(/\s*[\(\[]?\s*(www\.)?([a-z0-9-]+\.(org|com|net|io|info|xyz|app|cc)|spotdown)\s*[\)\]]?/ig,' ').replace(/\s{2,}/g,' ').replace(/[\s\-–_]+$/,'').trim();
@@ -308,7 +308,7 @@ $('save').onclick=async()=>{
   let s=editId?songs.find(x=>x.id===editId):null;
   if(!s&&!a)return toast('Pilih file lagu dulu');
   const isNew=!s;if(isNew)s={id:Date.now()};
-  s.title=title;s.artist=$('f-artist').value.trim();s.album=$('f-album').value.trim();s.lyrics=$('f-lyrics').value;
+  s.title=title;s.artist=$('f-artist').value.trim();s.album=$('f-album').value.trim();s.lyrics=stripMeta($('f-lyrics').value);
   if(a)s.audio=a;if(c)s.cover=c;
   hydrate(s);if(isNew)songs.unshift(s);
   const ok=await persist(s);resetForm();render();
@@ -327,8 +327,9 @@ async function del(id){
 const fmt=t=>isFinite(t)?Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'):'0:00';
 function play(id,keep){if(!keep)q=null;cur=songs.find(s=>s.id===id);if(!cur)return;au.src=cur.url;au.play().catch(()=>{});setUI();render()}
 function step(d){if(!songs.length||!cur)return;const L=curList(),i=L.findIndex(s=>s.id===cur.id);play(L[(i+d+L.length)%L.length].id,true)}
+function stripMeta(t){return (t||'').split('\n').filter(l=>!/^\s*\[[a-z#]{1,10}\s*:[^\]]*\]\s*$/i.test(l)).join('\n').replace(/^\s*\n+/,'')}
 function parseLyrics(t){
-  const lines=(t||'').split('\n'),out=[];let timed=false;
+  const lines=stripMeta(t).split('\n'),out=[];let timed=false;
   for(const l of lines){const m=l.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);if(m){timed=true;out.push({t:+m[1]*60+ +m[2],x:m[3]})}else if(l.trim())out.push({t:null,x:l.trim()})}
   return {timed,lines:out};
 }
@@ -681,7 +682,7 @@ try{
   try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
   let all=[];try{all=await op('readonly',s=>s.getAll())}catch(e){}
   all=Array.isArray(all)?all:[];{const sr=all.find(x=>x&&x.st);if(sr)stats=Object.assign({id:'stats',st:true,plays:{},secs:{},last:{}},sr)}lists=all.filter(s=>s&&s.pl).sort((a,b)=>b.id-a.id);lists.forEach(p=>{p.coverUrl=p.cover?URL.createObjectURL(p.cover):null;p.songIds=p.songIds||[]});songs=all.filter(s=>s&&s.audio).sort((a,b)=>b.id-a.id);
-  songs.forEach(hydrate);songs.forEach(s=>{const c=cleanTitle(s.title);if(c&&c!==s.title){s.title=c;persist(s)}});render();icons();applyPrefs();
+  songs.forEach(hydrate);songs.forEach(s=>{const l=stripMeta(s.lyrics);if(s.lyrics&&l!==s.lyrics){s.lyrics=l;persist(s)}});songs.forEach(s=>{const c=cleanTitle(s.title);if(c&&c!==s.title){s.title=c;persist(s)}});render();icons();applyPrefs();
   $('stor').textContent=db?'✓ Penyimpanan permanen aktif: lagu tetap ada setelah aplikasi ditutup.':'⚠ Penyimpanan browser tidak tersedia: lagu hanya tersimpan sementara.';
 })();
 </script>
