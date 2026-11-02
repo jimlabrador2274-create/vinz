@@ -166,7 +166,7 @@ select{width:100%;background:var(--card);color:var(--fg);border:0;border-radius:
     <div class="hint">Tempel lirik biasa, atau format LRC: [00:12.50] Baris lirik, supaya lirik bergerak otomatis mengikuti lagu.</div>
     <button class="btn" id="save">Simpan Lagu</button>
     <button class="btn sec" id="cancel" style="display:none">Batal Edit</button>
-    <h2>Lagu Tersimpan</h2><input id="mq" type="search" placeholder="Cari lagu tersimpan"><div class="fc" id="mf"></div><div id="mine"></div>
+    <h2>Lagu Tersimpan</h2><button class="sm" id="tidy" style="padding:0 0 10px">Rapikan judul semua lagu</button><input id="mq" type="search" placeholder="Cari lagu tersimpan"><div class="fc" id="mf"></div><div id="mine"></div>
   </div>
     <div id="setStats" style="display:none"></div>
     <div id="setLook" style="display:none">
@@ -242,6 +242,14 @@ document.addEventListener('click',e=>{
 });
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(view.tab!==b.dataset.v)go({tab:b.dataset.v,sp:''});else if(view.sp)go({sp:''})});
 $('q').oninput=render;$('mq').oninput=render;
+$('tidy').onclick=async()=>{
+  const ch=songs.filter(x=>shortTitle(x.title)!==String(x.title).trim());
+  if(!ch.length)return toast('Semua judul sudah rapi');
+  if(!confirm(ch.length+' judul akan dipendekkan, contoh:\n"'+ch[0].title+'"\nmenjadi\n"'+shortTitle(ch[0].title)+'"\n\nTambahan di judul bisa ditulis lagi lewat Edit. Lanjutkan?'))return;
+  let fail=0;
+  for(const x of ch){x.title=shortTitle(x.title);if(!(await persist(x)))fail++}
+  render();toast(fail?(ch.length-fail)+' judul dirapikan, '+fail+' gagal disimpan':ch.length+' judul dirapikan');
+};
 
 /* ---------- form tambah/edit ---------- */
 function resetForm(){editId=null;['f-title','f-artist','f-album','f-audio','f-cover','f-lyrics'].forEach(i=>$(i).value='');$('formTitle').textContent='Tambah Lagu';$('cancel').style.display='none';$('aNote').textContent=''}
@@ -250,12 +258,18 @@ $('cancel').onclick=resetForm;
 function cleanTitle(t){
   return String(t).replace(/\s*[\(\[]?\s*(www\.)?([a-z0-9-]+\.(org|com|net|io|info|xyz|app|cc)|spotdown)\s*[\)\]]?/ig,' ').replace(/\s{2,}/g,' ').replace(/[\s\-–_]+$/,'').trim();
 }
+function shortTitle(t){
+  const o=String(t).trim();let r=o,prev;
+  do{prev=r;r=r.replace(/\s*[\(\[][^\)\]]*[\)\]]\s*$/,'')}while(r!==prev);
+  r=r.replace(/\s+[-\u2013]\s+[^-\u2013]*\b(version|remaster(ed)?|live|deluxe|acoustic|from the vault|mono|stereo)\b.*$/i,'');
+  r=r.trim();return r||o;
+}
 function parseName(fn){
   let b=fn.replace(/\.[^.]+$/,'').replace(/_/g,' ').replace(/\s+/g,' ').trim();
   b=b.replace(/^\d{1,3}\s*[-.)]\s*/,'');b=cleanTitle(b);
   b=b.replace(/\s*[\(\[]\s*(official|lirik|lyrics?|audio|video|mv)[^\)\]]*[\)\]]/ig,'').trim();
   const m=b.match(/^(.+?)\s+[-–]\s+(.+)$/);
-  return m?{artist:m[1].trim(),title:m[2].trim()}:{artist:'',title:b||fn};
+  return m?{artist:m[1].trim(),title:shortTitle(m[2])}:{artist:'',title:shortTitle(b||fn)};
 }
 let autoT='',autoA='';
 $('f-audio').onchange=e=>{
