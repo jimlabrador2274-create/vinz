@@ -217,7 +217,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTi
 /* ---------- tampilan ---------- */
 const hue=s=>[...String(s)].reduce((a,c)=>a+c.charCodeAt(0)*7,0)%360;
 function art(s,cls){return s.coverUrl?`<img class="art ${cls||''}" src="${s.coverUrl}" alt="">`:`<div class="art ph ${cls||''}" style="background:linear-gradient(135deg,hsl(${hue(s.title)},70%,58%),hsl(${(hue(s.title)+50)%360},70%,38%))">♪</div>`}
-function rowHTML(s,extra){return `<div class="row ${cur&&cur.id===s.id?'cur':''}" data-id="${s.id}">${art(s)}<div class="t"><b>${esc(s.title)}</b><span>${esc(s.artist||'Artis tidak diketahui')}${s.album?' · '+esc(s.album):''}</span></div>${extra||''}</div>`}
+function rowHTML(s,extra,showAlbum){return `<div class="row ${cur&&cur.id===s.id?'cur':''}" data-id="${s.id}">${art(s)}<div class="t"><b>${esc(s.title)}</b><span>${esc(s.artist||'Artis tidak diketahui')}${showAlbum&&s.album?' · '+esc(s.album):''}</span></div>${extra||''}</div>`}
 const emptyMsg='<div class="empty">Belum ada lagu.<br>Buka <b>Pengaturan</b> untuk menambahkan lagu, lirik, dan foto album.</div>';
 function render(){renderPL();renderAL();
   $('home').innerHTML=songs.length?`<h2 style="margin-top:0">Baru Ditambahkan</h2><div class="grid">${songs.map(s=>`<div class="card" data-id="${s.id}">${art(s)}<b>${esc(s.title)}</b><span>${esc(s.artist||'')}</span></div>`).join('')}</div>`:emptyMsg;
@@ -230,7 +230,7 @@ function render(){renderPL();renderAL();
   const mfLab=[['','Semua'],['lirik','Tanpa lirik'],['foto','Tanpa foto album'],['album','Tanpa album'],['artis','Tanpa artis'],['judul','Tanpa judul']];
   $('mf').innerHTML=mfLab.map(([k,l])=>`<button data-mf="${k}" class="${mFilter===k?'on':''}">${l}${k?' ('+songs.filter(miss[k]).length+')':''}</button>`).join('');
   const fm=songs.filter(s=>(s.title+' '+(s.artist||'')+' '+(s.album||'')).toLowerCase().includes(mq)&&(!mFilter||miss[mFilter](s)));
-  $('mine').innerHTML=!songs.length?'<div class="empty">Belum ada lagu tersimpan.</div>':fm.length?fm.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`)).join(''):'<div class="empty">'+(mFilter&&!mq?'Semua lagu sudah lengkap untuk kategori ini.':'Tidak ada lagu yang cocok.')+'</div>';
+  $('mine').innerHTML=!songs.length?'<div class="empty">Belum ada lagu tersimpan.</div>':fm.length?fm.map(s=>rowHTML(s,`<button class="sm" data-e="${s.id}">Edit</button><button class="sm" data-d="${s.id}">Hapus</button>`,true)).join(''):'<div class="empty">'+(mFilter&&!mq?'Semua lagu sudah lengkap untuk kategori ini.':'Tidak ada lagu yang cocok.')+'</div>';
 }
 document.addEventListener('click',e=>{
   const mfb=e.target.closest('[data-mf]');if(mfb){mFilter=mfb.dataset.mf;return render()}
